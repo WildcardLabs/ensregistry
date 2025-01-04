@@ -43,5 +43,12 @@ async function fetchSubgraphData() {
     }
   }
 
+  console.log('Fetched data length:', results.length);
+  console.log('First item timestamp:', results[0]?.blockTimestamp);
+  console.log('Last item timestamp:', results[results.length - 1]?.blockTimestamp);
+  console.log(results)
+
   return results;
 }
+
+export { fetchSubgraphData }

@@ -72,10 +72,10 @@ function TableRow({ item }) {
           href={ensProfileUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 font-medium flex items-center"
+          className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:underline font-medium flex items-center"
         >
-          {item.name}
-          <ExternalLink size={14} className="ml-2" />
+          <span className="truncate max-w-[100px] sm:max-w-[150px] inline-block">{item.name}</span>
+          <ExternalLink size={14} className="ml-2 flex-shrink-0" />
         </a>
       </td>
       <td className="px-4 py-3 sm:px-6 sm:py-4 text-gray-900 dark:text-gray-100">
@@ -102,12 +102,6 @@ function TableRow({ item }) {
           </a>
         </div>
       </td>
-      <td className="px-4 py-3 sm:px-6 sm:py-4">
-        <div className="flex items-center">
-          <span className="text-sm font-mono">{item.blockNumber}</span>
-          <CopyButton text={item.blockNumber.toString()} />
-        </div>
-      </td>
       <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm">
         {formatDate(item.blockTimestamp)}
       </td>
@@ -124,8 +118,8 @@ export default function App() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await fetchSubgraphData()
-        const names = data.nameRegistereds.map((item) => ({
+        const nameRegistereds = await fetchSubgraphData()
+        const names = nameRegistereds.map((item) => ({
           ...item,
           name: item.name + ".eth"
         }))
@@ -151,15 +145,15 @@ export default function App() {
     )
   }
 
-  // if (error) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-  //       <div className="bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600 rounded-lg p-6 max-w-md">
-  //         <p className="text-xl text-red-600 dark:text-red-400 text-center">{error}</p>
-  //       </div>
-  //     </div>
-  //   )
-  // }
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600 rounded-lg p-6 max-w-md">
+          <p className="text-xl text-red-600 dark:text-red-400 text-center">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   const totalValue = registeredNames.reduce((total, item) => {
     const nameLength = item.name.replace('.eth', '').length
@@ -201,7 +195,7 @@ export default function App() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard 
-            title="Total Value (24h)" 
+            title="Total Value in Annual Fee (24h)" 
             value={`$${totalValue.toLocaleString()}`}
             icon={DollarSign}
           />
