@@ -3,7 +3,7 @@ import { gql, request } from 'graphql-request'
 
 const url = 'https://api.studio.thegraph.com/query/89559/ensregistry/v0.0.4'
 const query = gql`{
-  nameRegistereds(first: 60, orderBy: blockNumber, orderDirection: desc) {
+  nameRegistereds(first: 96, orderBy: blockNumber, orderDirection: desc) {
     id
     name
     owner
@@ -15,5 +15,5 @@ async function fetchSubgraphData() {
   return await request(url, query)
 }
 
-export default fetchSubgraphData
+export { fetchSubgraphData }
       
