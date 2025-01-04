@@ -1,6 +1,22 @@
 import { useState, useEffect } from 'react'
-import fetchSubgraphData from './fetchGraph'
-import { Copy, ExternalLink } from 'lucide-react'
+import { fetchSubgraphData } from './fetchGraph'
+import { ExternalLink, Copy, TrendingUp, Users, Clock, DollarSign } from 'lucide-react'
+
+function StatsCard({ title, value, icon: Icon }) {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-full">
+          <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+          <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{value}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false)
@@ -14,132 +30,211 @@ function CopyButton({ text }) {
   return (
     <button
       onClick={handleCopy}
-      className="ml-2 p-1.5 text-xs bg-[#2A2A2A] hover:bg-[#3A3A3A] rounded-md transition-colors duration-200 flex items-center"
+      className={`ml-2 p-1.5 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors duration-200 flex items-center whitespace-nowrap ${
+        copied ? 'text-green-500' : 'text-gray-600 dark:text-gray-300'
+      }`}
     >
-      <Copy size={12} className={`mr-1 ${copied ? 'text-green-400' : 'text-gray-400'}`} />
-      <span className={copied ? 'text-green-400' : 'text-gray-400'}>
-        {copied ? 'Copied' : 'Copy'}
-      </span>
+      <Copy size={12} className="mr-1" />
+      {copied ? 'Copied!' : 'Copy'}
     </button>
   )
 }
 
-function Card({ name, owner, transactionHash, blockNumber }) {
-  const etherscanUrl = `https://etherscan.io/tx/${transactionHash}`
-  const ensProfileUrl = `https://app.ens.domains/${name}`
+function TableRow({ item }) {
+  const ensProfileUrl = `https://app.ens.domains/${item.name}`
+  const etherscanUrl = `https://etherscan.io/tx/${item.transactionHash}`
+  
+  const getAnnualFees = (name) => {
+    const nameLength = name.replace('.eth', '').length
+    if (nameLength <= 3) return 640
+    if (nameLength === 4) return 160
+    return 5
+  }
+
+  const annualFees = getAnnualFees(item.name)
+
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp * 1000)
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
+  }
 
   return (
-    <div className="bg-[#1A1A1A] rounded-xl p-5 border border-[#2A2A2A] hover:border-[#3A3A3A] transition-all duration-300 hover:shadow-lg hover:shadow-[#00D2FF]/10">
-      <h2 className="text-xl font-bold mb-4 truncate">
+    <tr className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
+      <td className="px-4 py-3 sm:px-6 sm:py-4">
         <a
           href={ensProfileUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#00D2FF] hover:text-[#00A0FF] transition-colors duration-200 flex items-center"
+          className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:underline font-medium flex items-center"
         >
-          <span className="truncate">{name}</span>
-          <ExternalLink size={16} className="ml-2 flex-shrink-0" />
+          <span className="truncate max-w-[100px] sm:max-w-[150px] inline-block">{item.name}</span>
+          <ExternalLink size={14} className="ml-2 flex-shrink-0" />
         </a>
-      </h2>
-      <div className="space-y-4">
-        <div>
-          <p className="text-[#888] text-xs mb-1">Owner</p>
-          <div className="flex items-center">
-            <p className="text-[#E0E0E0] font-mono text-sm bg-[#2A2A2A] p-2 rounded-md flex-grow truncate">{owner}</p>
-            <CopyButton text={owner} />
-          </div>
+      </td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4 text-gray-900 dark:text-gray-100">
+        ${annualFees.toFixed(2)}
+      </td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-center">
+          <span className="text-sm font-mono truncate max-w-[100px] sm:max-w-[150px]">{item.owner}</span>
+          <CopyButton text={item.owner} />
         </div>
-        <div>
-          <p className="text-[#888] text-xs mb-1">Transaction Hash</p>
-          <div className="flex items-center">
-            <p className="text-[#E0E0E0] font-mono text-sm bg-[#2A2A2A] p-2 rounded-md flex-grow truncate">{transactionHash}</p>
-            <CopyButton text={transactionHash} />
-            <a
-              href={etherscanUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 p-1.5 text-xs bg-[#2A2A2A] hover:bg-[#3A3A3A] rounded-md transition-colors duration-200 flex items-center text-[#00D2FF] hover:text-[#00A0FF]"
-            >
-              <ExternalLink size={12} className="mr-1" />
-              Etherscan
-            </a>
-          </div>
+      </td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-center">
+          <span className="text-sm font-mono truncate max-w-[100px] sm:max-w-[150px]">{item.transactionHash}</span>
+          <CopyButton text={item.transactionHash} />
+          <a
+            href={etherscanUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-2 p-1.5 text-xs bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-400 rounded-md transition-colors duration-200 flex items-center opacity-80 hover:opacity-100"
+          >
+            <ExternalLink size={12} className="mr-1" />
+            View
+          </a>
         </div>
-        <div>
-          <p className="text-[#888] text-xs mb-1">Block Number</p>
-          <div className="flex items-center">
-            <p className="text-[#E0E0E0] font-mono text-sm bg-[#2A2A2A] p-2 rounded-md flex-grow">{blockNumber}</p>
-            <CopyButton text={blockNumber.toString()} />
-          </div>
-        </div>
-      </div>
-    </div>
+      </td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm">
+        {formatDate(item.blockTimestamp)}
+      </td>
+    </tr>
   )
 }
 
 export default function App() {
   const [registeredNames, setRegisteredNames] = useState([])
+  const [uniqueOwners, setUniqueOwners] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  async function fetchData() {
-    try {
-      const data = await fetchSubgraphData()
-      const names = data.nameRegistereds.map((item) => ({
-        ...item,
-        name: item.name + ".eth"
-      }))
-      setRegisteredNames(names)
-    } catch (err) {
-      setError('Failed to fetch data')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const nameRegistereds = await fetchSubgraphData()
+        const names = nameRegistereds.map((item) => ({
+          ...item,
+          name: item.name + ".eth"
+        }))
+        const owners = names.map(name => name.owner)
+
+        setRegisteredNames(names)
+        setUniqueOwners([...new Set(owners)])
+        setLoading(false)
+      } catch (err) {
+        setError('Failed to fetch data')
+        setLoading(false)
+      }
+    }
     fetchData()
   }, [])
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] text-white flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-t-2 border-[#00D2FF] rounded-full animate-spin mb-4"></div>
-        <p className="text-xl text-[#00D2FF] animate-pulse">Loading ENS data...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-t-4 border-emerald-500 border-solid rounded-full animate-spin mb-4"></div>
+        <p className="text-2xl text-emerald-600 dark:text-emerald-400 animate-pulse">Loading ENS data...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] text-white flex items-center justify-center">
-        <div className="bg-[#ff4040] bg-opacity-10 border border-[#ff4040] rounded-lg p-6 max-w-md">
-          <p className="text-xl text-[#ff4040] text-center">{error}</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600 rounded-lg p-6 max-w-md">
+          <p className="text-xl text-red-600 dark:text-red-400 text-center">{error}</p>
         </div>
       </div>
     )
   }
 
+  const totalValue = registeredNames.reduce((total, item) => {
+    const nameLength = item.name.replace('.eth', '').length
+    if (nameLength <= 3) return total + 640 
+    if (nameLength === 4) return total + 160
+    return total + 5
+  }, 0)
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] text-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 relative inline-block">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00D2FF] to-[#3A7BD5]">
-              ENS Registry
-            </span>
-            <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-[#00D2FF] to-[#3A7BD5] rounded-full"></div>
-          </h1>
-          <p className="text-lg md:text-xl text-[#888] max-w-2xl mx-auto">
-            Real-time tracking of new ENS domain registrations
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">ENSRegistry Overview</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Track all ENS domain registrations in real-time
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {registeredNames.map((item) => (
-            <Card key={item.id} {...item} />
-          ))}
+
+        <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">ENS Pricing Guide</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h3 className="font-medium mb-2">5+ characters</h3>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">$5/year</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Example: abcde.eth</p>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h3 className="font-medium mb-2">4 characters</h3>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">$160/year</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Example: abcd.eth</p>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h3 className="font-medium mb-2">3 characters</h3>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">$640/year</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Example: abc.eth</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatsCard 
+            title="Total Value in Annual Fee (24h)" 
+            value={`$${totalValue.toLocaleString()}`}
+            icon={DollarSign}
+          />
+          <StatsCard 
+            title="Registrations (24h)" 
+            value={registeredNames.length}
+            icon={TrendingUp}
+          />
+          <StatsCard 
+            title="Domain Buyers" 
+            value={uniqueOwners.length}
+            icon={Users}
+          />
+          <StatsCard 
+            title="Avg Registration Time" 
+            value="30 minutes"
+            icon={Clock}
+          />
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-700">
+                <th className="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Annual Fee</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Owner</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Transaction</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Block</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Registration Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {registeredNames.map((item) => <TableRow key={item.id} item={item} />)}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   )
 }
+
