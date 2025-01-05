@@ -29,11 +29,17 @@ async function fetchSubgraphData() {
   const results = [];
   let hasMore = true;
 
+  console.log(`Started fetching at ${new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  })}`)
+  
   while (hasMore) {
     const data = await request(url, baseQuery, { targetTimestamp, skip });
     const nameRegistereds = data.nameRegistereds;
     results.push(...nameRegistereds);
-
+    
     console.log(`Fetched ${nameRegistereds.length} items at skip ${skip}`);
 
     if (nameRegistereds.length < 100) {
