@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default tailwindConfig = {
+module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}", // Scans all files in the src folder for Tailwind classes
   ],
